@@ -2,6 +2,8 @@
 
 #include <future>
 
+#include "sync_get_impl.hpp"
+
 using namespace libbitcoin;
 using std::placeholders::_1;
 using std::placeholders::_2;
@@ -11,24 +13,6 @@ using std::placeholders::_4;
 sync_blockchain::sync_blockchain(blockchain& chain)
   : chain_(chain)
 {
-}
-
-template<typename ReturnType, typename FetchFunc, typename IndexType>
-ReturnType get_impl(FetchFunc fetch, IndexType index, std::error_code& ec)
-{
-    std::promise<std::error_code> ec_promise;
-    std::promise<ReturnType> obj_promise;
-    
-    auto handle =
-        [&ec_promise, &obj_promise]
-            (const std::error_code& ec, const ReturnType& obj)
-        {
-            ec_promise.set_value(ec);
-            obj_promise.set_value(obj);
-        };
-    fetch(index, handle);
-    ec = ec_promise.get_future().get();
-    return obj_promise.get_future().get();
 }
 
 template <typename IndexType>
@@ -124,7 +108,7 @@ size_t sync_blockchain::block_depth(const hash_digest& block_hash) const
 size_t sync_blockchain::block_depth(const hash_digest& block_hash,
     std::error_code& ec) const
 {
-    return get_impl<size_t>(
+    return sync_get_impl<size_t>(
         std::bind(&blockchain::fetch_block_depth, &chain_, _1, _2),
         block_hash, ec);
 }
@@ -137,8 +121,8 @@ size_t sync_blockchain::last_depth() const
 size_t sync_blockchain::last_depth(std::error_code& ec) const
 {
     // We discard the index since it isn't used for fetching the last depth.
-    // get_impl expects an index value so we give it a value to discard.
-    return get_impl<size_t>(
+    // sync_get_impl expects an index value so we give it a value to discard.
+    return sync_get_impl<size_t>(
         std::bind(&blockchain::fetch_last_depth, &chain_, _2),
         0, ec);
 }
@@ -152,7 +136,7 @@ transaction_type sync_blockchain::transaction(
 transaction_type sync_blockchain::transaction(
     const hash_digest& transaction_hash, std::error_code& ec) const
 {
-    return get_impl<transaction_type>(
+    return sync_get_impl<transaction_type>(
         std::bind(&blockchain::fetch_transaction, &chain_, _1, _2),
         transaction_hash, ec);
 }
@@ -190,7 +174,7 @@ input_point sync_blockchain::spend(
 input_point sync_blockchain::spend(
     const output_point& outpoint, std::error_code& ec) const
 {
-    return get_impl<input_point>(
+    return sync_get_impl<input_point>(
         std::bind(&blockchain::fetch_spend, &chain_, _1, _2),
         outpoint, ec);
 }
@@ -204,7 +188,7 @@ output_point_list sync_blockchain::outputs(
 output_point_list sync_blockchain::outputs(
     const payment_address& address, std::error_code& ec) const
 {
-    return get_impl<output_point_list>(
+    return sync_get_impl<output_point_list>(
         std::bind(&blockchain::fetch_outputs, &chain_, _1, _2),
         address, ec);
 }

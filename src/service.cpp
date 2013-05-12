@@ -29,7 +29,10 @@ std::string to_binary(const T& bytes)
 
 query_service_handler::query_service_handler(
     config_map_type& config, node_impl& node)
-  : stop_secret_(config["stop-secret"].c_str()), chain_(node.blockchain())
+  : stop_secret_(config["stop-secret"].c_str()),
+    chain_(node.blockchain()),
+    txpool_(node.transaction_pool()),
+    protocol_(node.protocol())
 {
 }
 
@@ -141,12 +144,8 @@ int32_t query_service_handler::last_depth()
     return depth;
 }
 
-void query_service_handler::transaction(
-    Transaction& tx, const std::string& hash)
+void thriftify_transaction(Transaction& tx, const transaction_type& tmp_tx)
 {
-    std::error_code ec;
-    auto tmp_tx = chain_.transaction(proper_hash(hash), ec);
-    check_errc(ec);
     tx.version = tmp_tx.version;
     tx.locktime = tmp_tx.locktime;
     for (const auto& tx_input: tmp_tx.inputs)
@@ -165,6 +164,15 @@ void query_service_handler::transaction(
         out.output_script = to_binary(save_script(tx_output.output_script));
         tx.outputs.push_back(out);
     }
+}
+
+void query_service_handler::transaction(
+    Transaction& tx, const std::string& hash)
+{
+    std::error_code ec;
+    const transaction_type tmp_tx = chain_.transaction(proper_hash(hash), ec);
+    check_errc(ec);
+    thriftify_transaction(tx, tmp_tx);
 }
 
 void query_service_handler::transaction_index(
@@ -202,6 +210,20 @@ void query_service_handler::outputs(
         outpoint.index = out.index;
         outpoints.push_back(outpoint);
     }
+}
+
+void query_service_handler::transaction_pool_transaction(
+    Transaction& tx, const std::string& hash)
+{
+    std::error_code ec;
+    const transaction_type tmp_tx = txpool_.get(proper_hash(hash), ec);
+    check_errc(ec);
+    thriftify_transaction(tx, tmp_tx);
+}
+
+void query_service_handler::broadcast_transaction(const std::string& tx_data)
+{
+    echo() << "Unimplemented method broadcast_transaction!";
 }
 
 void start_thrift_server(config_map_type& config, node_impl& node)

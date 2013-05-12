@@ -49,6 +49,7 @@ struct TransactionIndex {
 
 service QueryService {
   bool stop(1:string secret)
+  // blockchain methods
   BlockHeader block_header_by_depth(1:i32 depth)
   BlockHeader block_header_by_hash(1:binary hash)
   HashList block_transaction_hashes_by_depth(1:i32 depth)
@@ -59,5 +60,9 @@ service QueryService {
   TransactionIndex transaction_index(1:binary hash)
   InputPoint spend(1:OutputPoint outpoint)
   OutputPointList outputs(1:string address)
+  // transaction pool methods
+  Transaction transaction_pool_transaction(1:binary hash)
+  // protocol methods
+  void broadcast_transaction(1:binary data)
 }
 

@@ -5,6 +5,7 @@ BASE_MODULES= \
     node_impl.o \
     publisher.o \
     sync_blockchain.o \
+    sync_transaction_pool.o \
     interface_types.o \
     query_service.o \
     service.o \
@@ -31,6 +32,9 @@ obj/config.o: src/config.cpp
 	$(CXX) -o $@ -c $< $(CXXFLAGS)
 
 obj/service.o: src/service.cpp
+	$(CXX) -o $@ -c $< $(CXXFLAGS)
+
+obj/sync_transaction_pool.o: src/sync_transaction_pool.cpp
 	$(CXX) -o $@ -c $< $(CXXFLAGS)
 
 obj/sync_blockchain.o: src/sync_blockchain.cpp

@@ -6,6 +6,7 @@
 #include "thrift/QueryService.h"
 #include "node_impl.hpp"
 #include "sync_blockchain.hpp"
+#include "sync_transaction_pool.hpp"
 
 class query_service_handler
   : public QueryServiceIf
@@ -17,6 +18,7 @@ public:
     void initialize(stop_function_type stop_function);
 
     bool stop(const std::string& secret);
+    // blockchain methods
     void block_header_by_depth(BlockHeader& blk, const int32_t depth);
     void block_header_by_hash(BlockHeader& blk, const std::string& hash);
     void block_transaction_hashes_by_depth(
@@ -30,9 +32,16 @@ public:
         TransactionIndex& tx_index, const std::string& hash);
     void spend(InputPoint& inpoint, const OutputPoint& outpoint);
     void outputs(OutputPointList& outpoints, const std::string& address);
+    // transaction pool methods
+    void transaction_pool_transaction(
+        Transaction& tx, const std::string& hash);
+    // protocol methods
+    void broadcast_transaction(const std::string& tx_data);
 
 private:
     sync_blockchain chain_;
+    sync_transaction_pool txpool_;
+    bc::protocol& protocol_;
     const std::string stop_secret_;
     stop_function_type stop_function_;
 };
