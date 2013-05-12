@@ -1,0 +1,7 @@
+dependencies:
+
+apache thrift
+libconfig++-dev
+libzmq++-dev (zeromq)
+libbitcoin
+
