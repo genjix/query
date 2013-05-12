@@ -1,13 +1,14 @@
 #ifndef QUERY_ECHO_HPP
 #define QUERY_ECHO_HPP
 
+#include <sstream>
+
 class stdout_wrapper
 {
 public:
-    stdout_wrapper() {}
-    stdout_wrapper(stdout_wrapper&& other)
-      : stream_(other.stream_.str()) {}
-    ~stdout_wrapper() { std::cout << stream_.str() << std::endl; }
+    stdout_wrapper();
+    stdout_wrapper(stdout_wrapper&& other);
+    ~stdout_wrapper();
 
     template <typename T>
     stdout_wrapper& operator<<(T const& value) 
@@ -20,10 +21,7 @@ private:
     std::ostringstream stream_;
 };
 
-stdout_wrapper echo()
-{
-    return stdout_wrapper();
-}
+stdout_wrapper echo();
 
 #endif
 

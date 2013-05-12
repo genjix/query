@@ -119,3 +119,16 @@ bool node_impl::stop()
     return true;
 }
 
+blockchain& node_impl::blockchain()
+{
+    return chain_;
+}
+transaction_pool& node_impl::transaction_pool()
+{
+    return txpool_;
+}
+protocol& node_impl::protocol()
+{
+    return protocol_;
+}
+

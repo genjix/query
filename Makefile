@@ -6,10 +6,15 @@ BASE_MODULES= \
     publisher.o \
     sync_blockchain.o \
     interface_types.o \
-    query_service.o
+    query_service.o \
+    service.o \
+    echo.o
 MODULES=$(addprefix obj/, $(BASE_MODULES))
 
 default: queryd
+
+python:
+	thrift -out bcquery/ --gen py interface.thrift
 
 obj/interface_types.o: interface.thrift
 	mkdir -p src/thrift
@@ -21,10 +26,16 @@ obj/query_service.o: interface.thrift
 	thrift -out src/thrift --gen cpp interface.thrift
 	$(CXX) -o $@ -c src/thrift/QueryService.cpp $(CXXFLAGS)
 
+obj/service.o: src/service.cpp
+	$(CXX) -o $@ -c $< $(CXXFLAGS)
+
 obj/sync_blockchain.o: src/sync_blockchain.cpp
 	$(CXX) -o $@ -c $< $(CXXFLAGS)
 
 obj/publisher.o: src/publisher.cpp
+	$(CXX) -o $@ -c $< $(CXXFLAGS)
+
+obj/echo.o: src/echo.cpp
 	$(CXX) -o $@ -c $< $(CXXFLAGS)
 
 obj/node_impl.o: src/node_impl.cpp

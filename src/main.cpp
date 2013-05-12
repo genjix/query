@@ -1,5 +1,6 @@
 #include "node_impl.hpp"
 #include "echo.hpp"
+#include "service.hpp"
 
 int main()
 {
@@ -14,9 +15,12 @@ int main()
     if (!node.start())
         return 1;
     echo() << "Node started.";
-    std::cin.get();
+    start_thrift_server(node);
+    echo() << "Server stopped.";
+    echo() << "Stopping node...";
     if (!node.stop())
         return 1;
+    echo() << "Node stopped.";
     return 0;
 }
 

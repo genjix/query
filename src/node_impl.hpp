@@ -13,6 +13,10 @@ public:
     bool start();
     bool stop();
 
+    bc::blockchain& blockchain();
+    bc::transaction_pool& transaction_pool();
+    bc::protocol& protocol();
+
 private:
     std::ofstream outfile_, errfile_;
     bc::threadpool network_pool_, disk_pool_, mem_pool_;
