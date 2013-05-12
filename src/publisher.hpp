@@ -9,7 +9,8 @@
 class publisher
 {
 public:
-    publisher(config_map_type& config);
+    publisher();
+    void start(config_map_type& config);
     bool send(uint32_t depth, const bc::block_type& blk);
     bool send(const bc::transaction_type& tx);
 

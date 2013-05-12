@@ -1,5 +1,5 @@
-CXXFLAGS=$(shell pkg-config --cflags libbitcoin thrift)
-LIBS=$(shell pkg-config --libs libbitcoin thrift) -lzmq
+CXXFLAGS=$(shell pkg-config --cflags libbitcoin thrift libconfig++)
+LIBS=$(shell pkg-config --libs libbitcoin thrift libconfig++) -lzmq
 BASE_MODULES= \
     main.o \
     node_impl.o \
@@ -8,7 +8,8 @@ BASE_MODULES= \
     interface_types.o \
     query_service.o \
     service.o \
-    echo.o
+    echo.o \
+    config.o
 MODULES=$(addprefix obj/, $(BASE_MODULES))
 
 default: queryd
@@ -25,6 +26,9 @@ obj/query_service.o: interface.thrift
 	mkdir -p src/thrift
 	thrift -out src/thrift --gen cpp interface.thrift
 	$(CXX) -o $@ -c src/thrift/QueryService.cpp $(CXXFLAGS)
+
+obj/config.o: src/config.cpp
+	$(CXX) -o $@ -c $< $(CXXFLAGS)
 
 obj/service.o: src/service.cpp
 	$(CXX) -o $@ -c $< $(CXXFLAGS)

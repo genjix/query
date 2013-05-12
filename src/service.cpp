@@ -1,5 +1,6 @@
 #include "service.hpp"
 
+#include <boost/lexical_cast.hpp>
 #include <thrift/concurrency/ThreadManager.h>
 #include <thrift/concurrency/PosixThreadFactory.h>
 #include <thrift/protocol/TBinaryProtocol.h>
@@ -28,7 +29,7 @@ std::string to_binary(const T& bytes)
 
 query_service_handler::query_service_handler(
     config_map_type& config, node_impl& node)
-  : stop_secret_(config["stop secret"].c_str()), chain_(node.blockchain())
+  : stop_secret_(config["stop-secret"].c_str()), chain_(node.blockchain())
 {
 }
 
@@ -212,7 +213,8 @@ void start_thrift_server(config_map_type& config, node_impl& node)
     boost::shared_ptr<TProcessor> processor(
         new QueryServiceProcessor(handler));
     boost::shared_ptr<TServerTransport> server_transport(
-        new TServerSocket(9090));
+        new TServerSocket(
+            boost::lexical_cast<size_t>(config["service-port"])));
     boost::shared_ptr<TTransportFactory> transport_factory(
         new TBufferedTransportFactory());
 

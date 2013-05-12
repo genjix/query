@@ -9,8 +9,8 @@
 class node_impl
 {
 public:
-    node_impl(config_map_type& config);
-    bool start();
+    node_impl();
+    bool start(config_map_type& config);
     bool stop();
 
     bc::blockchain& blockchain();

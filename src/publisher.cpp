@@ -1,12 +1,16 @@
 #include "publisher.hpp"
 
-publisher::publisher(config_map_type& config)
+publisher::publisher()
   : context_(1),
     socket_block_(context_, ZMQ_PUB), socket_tx_(context_, ZMQ_PUB)
 {
+}
+
+void publisher::start(config_map_type& config)
+{
     std::string bind_addr = "tcp://*:";
-    socket_block_.bind((bind_addr + config["block pub port"]).c_str());
-    socket_tx_.bind((bind_addr + config["tx pub port"]).c_str());
+    socket_block_.bind((bind_addr + config["block-publish-port"]).c_str());
+    socket_tx_.bind((bind_addr + config["tx-publish-port"]).c_str());
 }
 
 bool send_raw(const bc::data_chunk& raw,

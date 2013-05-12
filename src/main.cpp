@@ -2,18 +2,13 @@
 #include "echo.hpp"
 #include "service.hpp"
 
-int main()
+int main(int argc, char** argv)
 {
     config_map_type config;
-    config["output file"] = "debug.log";
-    config["error file"] = "error.log";
-    config["database"] = "database";
-    config["block pub port"] = "5563";
-    config["tx pub port"] = "5564";
-    config["stop secret"] = "sdjkdfssf122f";
-    node_impl node(config);
+    load_config(config, "query.cfg");
+    node_impl node;
     echo() << "Starting node...";
-    if (!node.start())
+    if (!node.start(config))
         return 1;
     echo() << "Node started.";
     start_thrift_server(config, node);

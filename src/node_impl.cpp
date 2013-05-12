@@ -30,10 +30,8 @@ void output_cerr_and_file(std::ofstream& file, log_level level,
     std::cerr << output.str() << std::endl;
 }
 
-node_impl::node_impl(config_map_type& config)
-  : outfile_(config["output file"].c_str()),
-    errfile_(config["error file"].c_str()),
-    network_pool_(1), disk_pool_(1), mem_pool_(1),
+node_impl::node_impl()
+  : network_pool_(1), disk_pool_(1), mem_pool_(1),
     hosts_(network_pool_),
     handshake_(network_pool_),
     network_(network_pool_),
@@ -42,9 +40,14 @@ node_impl::node_impl(config_map_type& config)
     poller_(mem_pool_, chain_),
     txpool_(mem_pool_, chain_),
     session_(mem_pool_, {
-        handshake_, protocol_, chain_, poller_, txpool_}),
-    publish_(config)
+        handshake_, protocol_, chain_, poller_, txpool_})
 {
+}
+
+bool node_impl::start(config_map_type& config)
+{
+    outfile_.open(config["output-file"]);
+    errfile_.open(config["error-file"].c_str());
     log_debug().set_output_function(
         std::bind(output_to_file, std::ref(outfile_), _1, _2, _3));
     log_info().set_output_function(
@@ -55,10 +58,6 @@ node_impl::node_impl(config_map_type& config)
         std::bind(output_cerr_and_file, std::ref(errfile_), _1, _2, _3));
     log_fatal().set_output_function(
         std::bind(output_cerr_and_file, std::ref(errfile_), _1, _2, _3));
-}
-
-bool node_impl::start()
-{
     //protocol_.subscribe_channel(monitor_tx);
     // Start blockchain.
     std::promise<std::error_code> ec_chain;
@@ -67,7 +66,7 @@ bool node_impl::start()
         {
             ec_chain.set_value(ec);
         };
-    chain_.start("database", blockchain_started);
+    chain_.start(config["database"], blockchain_started);
     // Transaction pool
     txpool_.start();
     // Start session
@@ -91,6 +90,7 @@ bool node_impl::start()
         log_error() << "Unable to start session: " << ec.message();
         return false;
     }
+    publish_.start(config);
     return true;
 }
 
