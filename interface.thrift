@@ -48,7 +48,7 @@ struct TransactionIndex {
 }
 
 service QueryService {
-  void stop()
+  bool stop(1:string secret)
   BlockHeader block_header_by_depth(1:i32 depth)
   BlockHeader block_header_by_hash(1:binary hash)
   HashList block_transaction_hashes_by_depth(1:i32 depth)

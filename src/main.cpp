@@ -10,12 +10,13 @@ int main()
     config["database"] = "database";
     config["block pub port"] = "5563";
     config["tx pub port"] = "5564";
+    config["stop secret"] = "sdjkdfssf122f";
     node_impl node(config);
     echo() << "Starting node...";
     if (!node.start())
         return 1;
     echo() << "Node started.";
-    start_thrift_server(node);
+    start_thrift_server(config, node);
     echo() << "Server stopped.";
     echo() << "Stopping node...";
     if (!node.stop())

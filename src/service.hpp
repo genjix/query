@@ -13,10 +13,10 @@ class query_service_handler
 public:
     typedef std::function<void ()> stop_function_type;
 
-    query_service_handler(node_impl& node);
+    query_service_handler(config_map_type& config, node_impl& node);
     void initialize(stop_function_type stop_function);
 
-    void stop();
+    bool stop(const std::string& secret);
     void block_header_by_depth(BlockHeader& blk, const int32_t depth);
     void block_header_by_hash(BlockHeader& blk, const std::string& hash);
     void block_transaction_hashes_by_depth(
@@ -33,10 +33,11 @@ public:
 
 private:
     sync_blockchain chain_;
+    const std::string stop_secret_;
     stop_function_type stop_function_;
 };
 
-void start_thrift_server(node_impl& node);
+void start_thrift_server(config_map_type& config, node_impl& node);
 
 #endif
 

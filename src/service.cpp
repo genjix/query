@@ -26,8 +26,9 @@ std::string to_binary(const T& bytes)
     return binary;
 }
 
-query_service_handler::query_service_handler(node_impl& node)
-  : chain_(node.blockchain())
+query_service_handler::query_service_handler(
+    config_map_type& config, node_impl& node)
+  : stop_secret_(config["stop secret"].c_str()), chain_(node.blockchain())
 {
 }
 
@@ -36,10 +37,13 @@ void query_service_handler::initialize(stop_function_type stop_function)
     stop_function_ = stop_function;
 }
 
-void query_service_handler::stop()
+bool query_service_handler::stop(const std::string& secret)
 {
+    if (secret != stop_secret_)
+        return false;
     echo() << "Stopping server...";
     stop_function_();
+    return true;
 }
 
 void check_errc(const std::error_code& ec)
@@ -199,12 +203,12 @@ void query_service_handler::outputs(
     }
 }
 
-void start_thrift_server(node_impl& node)
+void start_thrift_server(config_map_type& config, node_impl& node)
 {
     boost::shared_ptr<TProtocolFactory> protocol_factory(
         new TBinaryProtocolFactory());
     boost::shared_ptr<query_service_handler> handler(
-        new query_service_handler(node));
+        new query_service_handler(config, node));
     boost::shared_ptr<TProcessor> processor(
         new QueryServiceProcessor(handler));
     boost::shared_ptr<TServerTransport> server_transport(
