@@ -221,9 +221,19 @@ void query_service_handler::transaction_pool_transaction(
     thriftify_transaction(tx, tmp_tx);
 }
 
-void query_service_handler::broadcast_transaction(const std::string& tx_data)
+bool query_service_handler::broadcast_transaction(const std::string& tx_data)
 {
-    echo() << "Unimplemented method broadcast_transaction!";
+    try
+    {
+        transaction_type tx;
+        satoshi_load(tx_data.begin(), tx_data.end(), tx);
+        protocol_.broadcast(tx);
+    }
+    catch (const bc::end_of_stream&)
+    {
+        return false;
+    }
+    return true;
 }
 
 void start_thrift_server(config_map_type& config, node_impl& node)

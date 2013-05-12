@@ -63,6 +63,6 @@ service QueryService {
   // transaction pool methods
   Transaction transaction_pool_transaction(1:binary hash)
   // protocol methods
-  void broadcast_transaction(1:binary data)
+  bool broadcast_transaction(1:binary data)
 }
 

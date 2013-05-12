@@ -36,7 +36,7 @@ public:
     void transaction_pool_transaction(
         Transaction& tx, const std::string& hash);
     // protocol methods
-    void broadcast_transaction(const std::string& tx_data);
+    bool broadcast_transaction(const std::string& tx_data);
 
 private:
     sync_blockchain chain_;
