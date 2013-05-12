@@ -59,7 +59,8 @@ bool node_impl::start(config_map_type& config)
         std::bind(output_cerr_and_file, std::ref(errfile_), _1, _2, _3));
     log_fatal().set_output_function(
         std::bind(output_cerr_and_file, std::ref(errfile_), _1, _2, _3));
-    //protocol_.subscribe_channel(monitor_tx);
+    protocol_.subscribe_channel(
+        std::bind(&node_impl::monitor_tx, this, _1));
     // Start blockchain.
     std::promise<std::error_code> ec_chain;
     auto blockchain_started =
@@ -148,5 +149,39 @@ void node_impl::reorganize(const std::error_code& ec,
     chain_.subscribe_reorganize(
         std::bind(&node_impl::reorganize,
             this, _1, _2, _3, _4));
+}
+
+void node_impl::monitor_tx(channel_ptr node)
+{
+    node->subscribe_transaction(
+        std::bind(&node_impl::recv_transaction, this, _1, _2, node));
+    protocol_.subscribe_channel(
+        std::bind(&node_impl::monitor_tx, this, _1));
+}
+
+void node_impl::recv_transaction(const std::error_code& ec,
+    const transaction_type& tx, channel_ptr node)
+{
+    if (ec)
+    {
+        log_error() << "recv_transaction: " << ec.message();
+        return;
+    }
+    auto handle_confirm = [](const std::error_code& ec)
+        {
+            if (ec)
+                log_warning() << "Confirm error: " << ec.message();
+        };
+    txpool_.store(tx, handle_confirm,
+        std::bind(&node_impl::handle_mempool_store, this, _1, _2, tx, node));
+    node->subscribe_transaction(
+        std::bind(&node_impl::recv_transaction, this, _1, _2, node));
+}
+
+void node_impl::handle_mempool_store(
+    const std::error_code& ec, const index_list& unconfirmed,
+    const transaction_type& tx, channel_ptr node)
+{
+    publish_.send(tx);
 }
 
