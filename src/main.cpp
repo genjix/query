@@ -7,6 +7,8 @@ int main()
     config["output file"] = "debug.log";
     config["error file"] = "error.log";
     config["database"] = "database";
+    config["block pub port"] = "5563";
+    config["tx pub port"] = "5564";
     query_app app(config);
     echo() << "Starting node...";
     if (!app.start())

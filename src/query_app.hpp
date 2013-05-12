@@ -3,7 +3,8 @@
 
 #include <bitcoin/bitcoin.hpp>
 
-typedef std::map<std::string, std::string> config_map_type;
+#include "config.hpp"
+#include "publisher.hpp"
 
 class query_app
 {
@@ -24,6 +25,8 @@ private:
     bc::poller poller_;
     bc::transaction_pool txpool_;
     bc::session session_;
+    // Publisher
+    publisher publish_;
 };
 
 #endif

@@ -42,7 +42,8 @@ query_app::query_app(config_map_type& config)
     poller_(mem_pool_, chain_),
     txpool_(mem_pool_, chain_),
     session_(mem_pool_, {
-        handshake_, protocol_, chain_, poller_, txpool_})
+        handshake_, protocol_, chain_, poller_, txpool_}),
+    publish_(config)
 {
     log_debug().set_output_function(
         std::bind(output_to_file, std::ref(outfile_), _1, _2, _3));
