@@ -144,8 +144,12 @@ void node_impl::reorganize(const std::error_code& ec,
 {
     // Don't bother publishing blocks when in the initial blockchain download.
     if (fork_point > 235866)
-        for (size_t i = 0; i < new_blocks.size(); ++i)
-            publish_.send(fork_point + i, *new_blocks[i]);
+        mem_pool_.service().post(
+            [this, new_blocks, fork_point]()
+            {
+                for (size_t i = 0; i < new_blocks.size(); ++i)
+                    publish_.send(fork_point + i, *new_blocks[i]);
+            });
     chain_.subscribe_reorganize(
         std::bind(&node_impl::reorganize,
             this, _1, _2, _3, _4));
