@@ -1,4 +1,4 @@
-#include "query_app.hpp"
+#include "node_impl.hpp"
 #include "echo.hpp"
 
 int main()
@@ -9,13 +9,13 @@ int main()
     config["database"] = "database";
     config["block pub port"] = "5563";
     config["tx pub port"] = "5564";
-    query_app app(config);
+    node_impl node(config);
     echo() << "Starting node...";
-    if (!app.start())
+    if (!node.start())
         return 1;
     echo() << "Node started.";
     std::cin.get();
-    if (!app.stop())
+    if (!node.stop())
         return 1;
     return 0;
 }

@@ -1,4 +1,4 @@
-#include "query_app.hpp"
+#include "node_impl.hpp"
 
 #include <future>
 
@@ -30,7 +30,7 @@ void output_cerr_and_file(std::ofstream& file, log_level level,
     std::cerr << output.str() << std::endl;
 }
 
-query_app::query_app(config_map_type& config)
+node_impl::node_impl(config_map_type& config)
   : outfile_(config["output file"].c_str()),
     errfile_(config["error file"].c_str()),
     network_pool_(1), disk_pool_(1), mem_pool_(1),
@@ -57,7 +57,7 @@ query_app::query_app(config_map_type& config)
         std::bind(output_cerr_and_file, std::ref(errfile_), _1, _2, _3));
 }
 
-bool query_app::start()
+bool node_impl::start()
 {
     //protocol_.subscribe_channel(monitor_tx);
     // Start blockchain.
@@ -94,7 +94,7 @@ bool query_app::start()
     return true;
 }
 
-bool query_app::stop()
+bool node_impl::stop()
 {
     std::promise<std::error_code> ec_promise;
     auto session_stop =

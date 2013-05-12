@@ -1,15 +1,15 @@
-#ifndef QUERY_QUERY_APP_HPP
-#define QUERY_QUERY_APP_HPP
+#ifndef QUERY_NODE_IMPL_HPP
+#define QUERY_NODE_IMPL_HPP
 
 #include <bitcoin/bitcoin.hpp>
 
 #include "config.hpp"
 #include "publisher.hpp"
 
-class query_app
+class node_impl
 {
 public:
-    query_app(config_map_type& config);
+    node_impl(config_map_type& config);
     bool start();
     bool stop();
 
