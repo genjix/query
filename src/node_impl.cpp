@@ -6,6 +6,7 @@ using namespace bc;
 using std::placeholders::_1;
 using std::placeholders::_2;
 using std::placeholders::_3;
+using std::placeholders::_4;
 
 void output_to_file(std::ofstream& file, log_level level,
     const std::string& domain, const std::string& body)
@@ -91,6 +92,9 @@ bool node_impl::start(config_map_type& config)
         return false;
     }
     publish_.start(config);
+    chain_.subscribe_reorganize(
+        std::bind(&node_impl::reorganize,
+            this, _1, _2, _3, _4));
     return true;
 }
 
@@ -130,5 +134,19 @@ transaction_pool& node_impl::transaction_pool()
 protocol& node_impl::protocol()
 {
     return protocol_;
+}
+
+void node_impl::reorganize(const std::error_code& ec,
+    size_t fork_point,
+    const bc::blockchain::block_list& new_blocks,
+    const bc::blockchain::block_list& replaced_blocks)
+{
+    // Don't bother publishing blocks when in the initial blockchain download.
+    if (fork_point > 235866)
+        for (size_t i = 0; i < new_blocks.size(); ++i)
+            publish_.send(fork_point + i, *new_blocks[i]);
+    chain_.subscribe_reorganize(
+        std::bind(&node_impl::reorganize,
+            this, _1, _2, _3, _4));
 }
 

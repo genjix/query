@@ -18,6 +18,11 @@ public:
     bc::protocol& protocol();
 
 private:
+    void reorganize(const std::error_code& ec,
+        size_t fork_point,
+        const bc::blockchain::block_list& new_blocks,
+        const bc::blockchain::block_list& replaced_blocks);
+
     std::ofstream outfile_, errfile_;
     bc::threadpool network_pool_, disk_pool_, mem_pool_;
     // Services
