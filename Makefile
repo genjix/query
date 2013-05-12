@@ -17,6 +17,7 @@ default: queryd
 
 python:
 	thrift -out bcquery/ --gen py interface.thrift
+	echo "from service import *" > bcquery/__init__.py
 
 obj/interface_types.o: interface.thrift
 	mkdir -p src/thrift
