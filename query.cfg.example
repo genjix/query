@@ -3,6 +3,6 @@ error-file = "error.log"
 database = "database"
 block-publish-port = 5563
 tx-publish-port = 5564
-service-port = 8181
+service-port = 9090
 stop-secret = "blaa blaa"
 
