@@ -337,18 +337,24 @@ class Output:
                                     None, None)
         return self.spend_
 
-# Make socket
-transport = TSocket.TSocket('localhost', 9090)
-# Buffering is critical. Raw sockets are very slow
-transport = TTransport.TBufferedTransport(transport)
-# Wrap in a protocol
-protocol = TBinaryProtocol.TBinaryProtocol(transport)
-# Create a client to use the protocol encoder
-client = QueryService.Client(protocol)
-# Connect!
-transport.open()
+class Service:
 
-blocks = BlocksManager(client)
-transactions = TransactionsManager(client)
-outputs = OutputsManager(client)
+    def __init__(self, server="localhost", port=9090):
+        # Make socket
+        self.transport = TSocket.TSocket('localhost', 9090)
+        # Buffering is critical. Raw sockets are very slow
+        self.transport = TTransport.TBufferedTransport(self.transport)
+        # Wrap in a protocol
+        self.protocol = TBinaryProtocol.TBinaryProtocol(self.transport)
+        # Create a client to use the protocol encoder
+        self.client = QueryService.Client(self.protocol)
+        # Connect!
+        self.transport.open()
+
+        self.blocks = BlocksManager(self.client)
+        self.transactions = TransactionsManager(self.client)
+        self.outputs = OutputsManager(self.client)
+
+    def stop(self, secret):
+        self.client.stop(secret)
 
