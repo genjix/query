@@ -1,3 +1,4 @@
+import bitcoin
 import threading
 import struct
 import zmq
@@ -38,7 +39,8 @@ class BlockSubscribe(BaseSubscribe):
             message = self.subscriber.recv()
             depth = struct.unpack("<L", message)[0]
             message = self.subscriber.recv()
-            self.queue.put((depth, message))
+            block = bitcoin.parse_block(message)
+            self.queue.put((depth, block))
 
 class TransactionSubscribe(BaseSubscribe):
 
@@ -48,5 +50,6 @@ class TransactionSubscribe(BaseSubscribe):
     def run(self):
         while True:
             message = self.subscriber.recv()
-            self.queue.put(message)
+            tx = bitcoin.parse_transaction(message)
+            self.queue.put(tx)
 
