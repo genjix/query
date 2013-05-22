@@ -341,7 +341,7 @@ class Service:
 
     def __init__(self, server="localhost", port=9090):
         # Make socket
-        self.transport = TSocket.TSocket('localhost', 9090)
+        self.transport = TSocket.TSocket(server, port)
         # Buffering is critical. Raw sockets are very slow
         self.transport = TTransport.TBufferedTransport(self.transport)
         # Wrap in a protocol
