@@ -11,8 +11,9 @@ from thrift.protocol import TBinaryProtocol
 
 class BlocksManager:
 
-    def __init__(self, client):
-        self.client = client
+    def __init__(self, service):
+        self.service = service
+        self.client = service.client
 
     def __getitem__(self, index):
         depth, hash = None, None
@@ -33,7 +34,7 @@ class BlocksManager:
             block_head = self.client.block_header_by_hash(hash)
         else:
             raise IndexError("Bad index.")
-        return Block(self.client, block_head, depth, hash)
+        return Block(self.service, block_head, depth, hash)
 
     @property
     def last_depth(self):
@@ -57,8 +58,9 @@ def hash_block_header(block):
 
 class Block:
 
-    def __init__(self, client, header, depth, hash):
-        self.client = client
+    def __init__(self, service, header, depth, hash):
+        self.service = service
+        self.client = service.client
         self.header = header
         self.depth_ = depth
         self.hash_ = hash
@@ -121,22 +123,22 @@ class Block:
     def previous_block(self):
         if self.depth == 0:
             raise IndexError("No previous block exists.")
-        return blocks[self.previous_block_hash]
+        return self.service.blocks[self.previous_block_hash]
 
     @property
     def next_block(self):
         next_depth = self.depth + 1
-        if next_depth >= len(blocks):
+        if next_depth >= len(self.service.blocks):
             raise IndexError("No next block exists (yet).")
-        blk = blocks[next_depth]
+        blk = self.service.blocks[next_depth]
         if blk.previous_block_hash != self.hash:
             raise IndexError("Next block not found.")
         return blk
 
 class TransactionsManager:
 
-    def __init__(self, client):
-        self.client = client
+    def __init__(self, service):
+        self.service = service
 
     def __getitem__(self, index):
         if type(index) != str:
@@ -147,12 +149,13 @@ class TransactionsManager:
             hash = index
         else:
             raise IndexError("Bad index.")
-        return Transaction(self.client, hash, None, None, None)
+        return Transaction(self.service, hash, None, None, None)
 
 class Transaction:
 
-    def __init__(self, client, hash, parent_block, depth, offset):
-        self.client = client
+    def __init__(self, service, hash, parent_block, depth, offset):
+        self.service = service
+        self.client = service.client
         self.hash = hash
         self.body = None
         self.parent_block_ = parent_block
@@ -179,7 +182,7 @@ class Transaction:
     @property
     def parent_block(self):
         if self.parent_block_ is None:
-            self.parent_block_ = blocks[self.depth]
+            self.parent_block_ = self.service.blocks[self.depth]
         return self.parent_block_
 
     def lazy_init_body(self):
@@ -269,13 +272,14 @@ class Input:
     @property
     def parent_tx(self):
         if self.parent_tx_ is None:
-            self.parent_tx_ = transactions[self.hash]
+            self.parent_tx_ = self.service.transactions[self.hash]
         return self.parent_tx_
 
 class OutputsManager:
 
-    def __init__(self, client):
-        self.client = client
+    def __init__(self, service):
+        self.service = service
+        self.client = service.client
 
     def __getitem__(self, address):
         if type(address) != str:
@@ -283,15 +287,16 @@ class OutputsManager:
         outputs = []
         outpoints = self.client.outputs(address)
         for outpoint in outpoints:
-            output = Output(self.client, outpoint.hash, outpoint.index,
+            output = Output(self.service, outpoint.hash, outpoint.index,
                             None, None)
             outputs.append(output)
         return outputs
 
 class Output:
 
-    def __init__(self, client, hash, index, body, parent_tx):
-        self.client = client
+    def __init__(self, service, hash, index, body, parent_tx):
+        self.service = service
+        self.client = service.client
         self.hash = hash
         self.index = index
         self.body = body
@@ -319,7 +324,7 @@ class Output:
     @property
     def parent_tx(self):
         if self.parent_tx_ is None:
-            self.parent_tx_ = transactions[self.hash]
+            self.parent_tx_ = self.service.transactions[self.hash]
         return self.parent_tx_
 
     @property
@@ -351,9 +356,9 @@ class Service:
         # Connect!
         self.transport.open()
 
-        self.blocks = BlocksManager(self.client)
-        self.transactions = TransactionsManager(self.client)
-        self.outputs = OutputsManager(self.client)
+        self.blocks = BlocksManager(self)
+        self.transactions = TransactionsManager(self)
+        self.outputs = OutputsManager(self)
 
     def stop(self, secret):
         self.client.stop(secret)
