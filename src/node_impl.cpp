@@ -33,7 +33,7 @@ void output_cerr_and_file(std::ofstream& file, log_level level,
 }
 
 node_impl::node_impl()
-  : network_pool_(1), disk_pool_(1), mem_pool_(1),
+  : network_pool_(1), disk_pool_(4), mem_pool_(1),
     hosts_(network_pool_),
     handshake_(network_pool_),
     network_(network_pool_),
@@ -70,6 +70,13 @@ bool node_impl::start(config_map_type& config)
             ec_chain.set_value(ec);
         };
     chain_.start(config["database"], blockchain_started);
+    // Query the error_code and wait for startup completion.
+    std::error_code ec = ec_chain.get_future().get();
+    if (ec)
+    {
+        log_error() << "Couldn't start blockchain: " << ec.message();
+        return false;
+    }
     // Transaction pool
     txpool_.start();
     // Start session
@@ -80,19 +87,14 @@ bool node_impl::start(config_map_type& config)
             ec_session.set_value(ec);
         };
     session_.start(session_started);
-    // Query the error_codes and wait for startup completion.
-    std::error_code ec = ec_chain.get_future().get();
-    if (ec)
-    {
-        log_error() << "Couldn't start blockchain: " << ec.message();
-        return false;
-    }
+    // Query the error_code and wait for startup completion.
     ec = ec_session.get_future().get();
     if (ec)
     {
         log_error() << "Unable to start session: " << ec.message();
         return false;
     }
+    // Ready to begin publishing new blocks and txs.
     publish_.start(config);
     chain_.subscribe_reorganize(
         std::bind(&node_impl::reorganize,
