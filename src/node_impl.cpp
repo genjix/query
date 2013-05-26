@@ -33,7 +33,7 @@ void output_cerr_and_file(std::ofstream& file, log_level level,
 }
 
 node_impl::node_impl()
-  : network_pool_(1), disk_pool_(4), mem_pool_(1),
+  : network_pool_(1), disk_pool_(6), mem_pool_(1),
     hosts_(network_pool_),
     handshake_(network_pool_),
     network_(network_pool_),
@@ -190,6 +190,7 @@ void node_impl::handle_mempool_store(
     const std::error_code& ec, const index_list& unconfirmed,
     const transaction_type& tx, channel_ptr node)
 {
+    log_info() << "Accepted transaction: " << hash_transaction(tx);
     publish_pool_.service().post(
         std::bind(&publisher::send_tx, &publish_, tx));
 }
