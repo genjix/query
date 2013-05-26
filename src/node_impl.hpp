@@ -31,7 +31,7 @@ private:
         const bc::transaction_type& tx, bc::channel_ptr node);
 
     std::ofstream outfile_, errfile_;
-    bc::threadpool network_pool_, disk_pool_, mem_pool_;
+    bc::threadpool network_pool_, disk_pool_, mem_pool_, publish_pool_;
     // Services
     bc::hosts hosts_;
     bc::handshake handshake_;

@@ -21,7 +21,7 @@ bool send_raw(const bc::data_chunk& raw,
     return socket.send(message, send_more ? ZMQ_PUB : 0);
 }
 
-bool publisher::send(uint32_t depth, const bc::block_type& blk)
+bool publisher::send_blk(uint32_t depth, const bc::block_type& blk)
 {
     bc::data_chunk raw_depth = bc::uncast_type(depth);
     BITCOIN_ASSERT(raw_depth.size() == 4);
@@ -32,7 +32,7 @@ bool publisher::send(uint32_t depth, const bc::block_type& blk)
     return send_raw(raw_block, socket_block_);
 }
 
-bool publisher::send(const bc::transaction_type& tx)
+bool publisher::send_tx(const bc::transaction_type& tx)
 {
     bc::data_chunk raw_tx(bc::satoshi_raw_size(tx));
     bc::satoshi_save(tx, raw_tx.begin());

@@ -147,12 +147,13 @@ void node_impl::reorganize(const std::error_code& ec,
 {
     // Don't bother publishing blocks when in the initial blockchain download.
     if (fork_point > 235866)
-        mem_pool_.service().post(
-            [this, new_blocks, fork_point]()
-            {
-                for (size_t i = 0; i < new_blocks.size(); ++i)
-                    publish_.send(fork_point + i, *new_blocks[i]);
-            });
+        for (size_t i = 0; i < new_blocks.size(); ++i)
+        {
+            size_t depth = fork_point + i;
+            const block_type& blk = *new_blocks[i];
+            publish_pool_.service().post(
+                std::bind(&publisher::send_blk, &publish_, depth, blk));
+        }
     chain_.subscribe_reorganize(
         std::bind(&node_impl::reorganize,
             this, _1, _2, _3, _4));
@@ -189,6 +190,7 @@ void node_impl::handle_mempool_store(
     const std::error_code& ec, const index_list& unconfirmed,
     const transaction_type& tx, channel_ptr node)
 {
-    publish_.send(tx);
+    publish_pool_.service().post(
+        std::bind(&publisher::send_tx, &publish_, tx));
 }
 

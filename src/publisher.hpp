@@ -11,8 +11,8 @@ class publisher
 public:
     publisher();
     void start(config_map_type& config);
-    bool send(uint32_t depth, const bc::block_type& blk);
-    bool send(const bc::transaction_type& tx);
+    bool send_blk(uint32_t depth, const bc::block_type& blk);
+    bool send_tx(const bc::transaction_type& tx);
 
 private:
     zmq::context_t context_;
