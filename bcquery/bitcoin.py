@@ -519,7 +519,9 @@ def parse_block(raw_block):
 def parse_transaction(raw_tx):
     vds = deserialize.BCDataStream()
     vds.write(raw_tx)
-    return deserialize.parse_Transaction(vds)
+    tx = deserialize.parse_Transaction(vds)
+    tx["hash"] = deserialize.Hash(raw_tx)[::-1]
+    return tx
 
 class Transaction:
     

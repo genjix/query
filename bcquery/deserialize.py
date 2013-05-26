@@ -329,6 +329,7 @@ def parse_BlockHeader(vds):
     d['nNonce'] = vds.read_uint32()
     header_end = vds.read_cursor
     d['__header__'] = vds.input[header_start:header_end]
+    d["hash"] = Hash(d["__header__"])[::-1]
     return d
 
 opcodes = Enumeration("Opcodes", [
@@ -413,7 +414,7 @@ def get_address_from_input_script(bytes):
         decoded = [ x for x in script_GetOp(bytes) ]
     except:
         # coinbase transactions raise an exception
-        print_error("cannot find address in input script", bytes.encode('hex'))
+        #print_error("cannot find address in input script", bytes.encode('hex'))
         return [], [], "(None)"
 
     # non-generated TxIn transactions push a signature
@@ -448,7 +449,7 @@ def get_address_from_input_script(bytes):
             pubkeys = [ dec2[1][1].encode('hex'), dec2[2][1].encode('hex'), dec2[3][1].encode('hex') ]
             return pubkeys, signatures, hash_160_to_bc_address(hash_160(redeemScript), 5)
 
-    print_error("cannot find address in input script", bytes.encode('hex'))
+    #print_error("cannot find address in input script", bytes.encode('hex'))
     return [], [], "(None)"
 
 

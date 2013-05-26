@@ -1,4 +1,5 @@
 import bitcoin
+import deserialize
 import threading
 import struct
 import zmq
