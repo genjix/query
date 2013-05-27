@@ -149,7 +149,7 @@ void node_impl::reorganize(const std::error_code& ec,
     if (fork_point > 235866)
         for (size_t i = 0; i < new_blocks.size(); ++i)
         {
-            size_t depth = fork_point + i;
+            size_t depth = fork_point + i + 1;
             const block_type& blk = *new_blocks[i];
             publish_pool_.service().post(
                 std::bind(&publisher::send_blk, &publish_, depth, blk));
