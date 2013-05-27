@@ -120,9 +120,11 @@ bool node_impl::stop()
     network_pool_.stop();
     disk_pool_.stop();
     mem_pool_.stop();
+    publish_pool_.stop();
     network_pool_.join();
     disk_pool_.join();
     mem_pool_.join();
+    publish_pool_.join();
     chain_.stop();
     return true;
 }
