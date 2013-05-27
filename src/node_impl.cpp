@@ -33,7 +33,7 @@ void output_cerr_and_file(std::ofstream& file, log_level level,
 }
 
 node_impl::node_impl()
-  : network_pool_(1), disk_pool_(6), mem_pool_(1),
+  : network_pool_(1), disk_pool_(6), mem_pool_(1), publish_pool_(2),
     hosts_(network_pool_),
     handshake_(network_pool_),
     network_(network_pool_),
