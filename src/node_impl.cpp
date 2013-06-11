@@ -61,7 +61,7 @@ bool node_impl::start(config_map_type& config)
     log_fatal().set_output_function(
         std::bind(output_cerr_and_file, std::ref(errfile_), _1, _2, _3));
     protocol_.subscribe_channel(
-        std::bind(&node_impl::monitor_tx, this, _1));
+        std::bind(&node_impl::monitor_tx, this, _1, _2));
     // Start blockchain.
     std::promise<std::error_code> ec_chain;
     auto blockchain_started =
@@ -154,12 +154,17 @@ void node_impl::reorganize(const std::error_code& ec,
             this, _1, _2, _3, _4));
 }
 
-void node_impl::monitor_tx(channel_ptr node)
+void node_impl::monitor_tx(const std::error_code& ec, channel_ptr node)
 {
+    if (ec)
+    {
+        log_warning() << "Couldn't start connection: " << ec.message();
+        return;
+    }
     node->subscribe_transaction(
         std::bind(&node_impl::recv_transaction, this, _1, _2, node));
     protocol_.subscribe_channel(
-        std::bind(&node_impl::monitor_tx, this, _1));
+        std::bind(&node_impl::monitor_tx, this, _1, _2));
 }
 
 void node_impl::recv_transaction(const std::error_code& ec,

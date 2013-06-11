@@ -23,7 +23,7 @@ private:
         const bc::blockchain::block_list& new_blocks,
         const bc::blockchain::block_list& replaced_blocks);
 
-    void monitor_tx(bc::channel_ptr node);
+    void monitor_tx(const std::error_code& ec, bc::channel_ptr node);
     void recv_transaction(const std::error_code& ec,
         const bc::transaction_type& tx, bc::channel_ptr node);
     void handle_mempool_store(
