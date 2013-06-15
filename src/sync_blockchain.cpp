@@ -4,7 +4,7 @@
 
 #include "sync_get_impl.hpp"
 
-using namespace libbitcoin;
+using namespace bc;
 using std::placeholders::_1;
 using std::placeholders::_2;
 using std::placeholders::_3;
@@ -19,19 +19,20 @@ template <typename IndexType>
 block_type block_header_impl(blockchain& chain,
     IndexType index, std::error_code& ec)
 {
-    std::promise<std::error_code> ec_promise;
-    std::promise<block_type> block_header_promise;
-
+    block_type block_header;
+    std::promise<bool> promise;
     auto handle_block_header =
-        [&ec_promise, &block_header_promise]
-            (const std::error_code& ec, const block_type& blk)
+        [&ec, &block_header, &promise]
+            (const std::error_code& cec, const block_type& blk)
         {
-            ec_promise.set_value(ec);
-            block_header_promise.set_value(blk);
+            ec = cec;
+            block_header = blk;
+            promise.set_value(true);
         };
     chain.fetch_block_header(index, handle_block_header);
-    ec = ec_promise.get_future().get();
-    return block_header_promise.get_future().get();
+    bool success = promise.get_future().get();
+    BITCOIN_ASSERT(success);
+    return block_header;
 }
 
 block_type sync_blockchain::block_header(size_t depth) const
@@ -61,19 +62,20 @@ template <typename IndexType>
 inventory_list block_tx_hashes_impl(blockchain& chain,
     IndexType index, std::error_code& ec)
 {
-    std::promise<std::error_code> ec_promise;
-    std::promise<inventory_list> hashes_promise;
-
+    inventory_list hashes;
+    std::promise<bool> promise;
     auto handle_tx_hashes =
-        [&ec_promise, &hashes_promise]
-            (const std::error_code& ec, const inventory_list& hashes)
+        [&ec, &hashes, &promise]
+            (const std::error_code& cec, const inventory_list& chashes)
         {
-            ec_promise.set_value(ec);
-            hashes_promise.set_value(hashes);
+            ec = cec;
+            hashes = chashes;
+            promise.set_value(true);
         };
     chain.fetch_block_transaction_hashes(index, handle_tx_hashes);
-    ec = ec_promise.get_future().get();
-    return hashes_promise.get_future().get();
+    bool success = promise.get_future().get();
+    BITCOIN_ASSERT(success);
+    return hashes;
 }
 
 inventory_list sync_blockchain::block_transaction_hashes(
@@ -150,19 +152,20 @@ transaction_index_t sync_blockchain::transaction_index(
 transaction_index_t sync_blockchain::transaction_index(
     const hash_digest& transaction_hash, std::error_code& ec) const
 {
-    std::promise<std::error_code> ec_promise;
-    std::promise<transaction_index_t> tx_index_promise;
-
+    transaction_index_t tx_index;
+    std::promise<bool> promise;
     auto handle_tx_index =
-        [&ec_promise, &tx_index_promise]
-            (const std::error_code& ec, size_t depth, size_t offset)
+        [&ec, &tx_index, &promise]
+            (const std::error_code& cec, size_t depth, size_t offset)
         {
-            ec_promise.set_value(ec);
-            tx_index_promise.set_value({depth, offset});
+            ec = cec;
+            tx_index = {depth, offset};
+            promise.set_value(true);
         };
     chain_.fetch_transaction_index(transaction_hash, handle_tx_index);
-    ec = ec_promise.get_future().get();
-    return tx_index_promise.get_future().get();
+    bool success = promise.get_future().get();
+    BITCOIN_ASSERT(success);
+    return tx_index;
 }
 
 input_point sync_blockchain::spend(
@@ -191,5 +194,47 @@ output_point_list sync_blockchain::outputs(
     return sync_get_impl<output_point_list>(
         std::bind(&blockchain::fetch_outputs, &chain_, _1, _2),
         address, ec);
+}
+
+history_t sync_blockchain::history(
+    const bc::payment_address& address) const
+{
+    std::error_code discard_ec;
+    return history(address, discard_ec);
+}
+history_t sync_blockchain::history(
+    const bc::payment_address& address, std::error_code& ec) const
+{
+    history_t history;
+    std::promise<bool> promise;
+    auto handle_history =
+        [&ec, &history, &promise]
+            (const std::error_code& cec,
+             const output_point_list& outpoints,
+             const input_point_list& inpoints)
+        {
+            ec = cec;
+            history.outpoints = outpoints;
+            history.inpoints = inpoints;
+            promise.set_value(true);
+        };
+    fetch_history(chain_, address, handle_history);
+    bool success = promise.get_future().get();
+    BITCOIN_ASSERT(success);
+    return history;
+}
+
+output_value_list sync_blockchain::output_values(
+    const output_point_list& outpoints) const
+{
+    std::error_code discard_ec;
+    return output_values(outpoints, discard_ec);
+}
+output_value_list sync_blockchain::output_values(
+    const output_point_list& outpoints, std::error_code& ec) const
+{
+    return sync_get_impl<output_value_list>(
+        std::bind(&fetch_output_values, std::ref(chain_), _1, _2),
+        outpoints, ec);
 }
 

@@ -32,6 +32,9 @@ public:
         TransactionIndex& tx_index, const std::string& hash);
     void spend(InputPoint& inpoint, const OutputPoint& outpoint);
     void outputs(OutputPointList& outpoints, const std::string& address);
+    // blockchain (composed) methods
+    void history(History& history, const std::string& address);
+    void output_values(OutputValues& values, const OutputPointList& outpoints);
     // transaction pool methods
     void transaction_pool_transaction(
         Transaction& tx, const std::string& hash);

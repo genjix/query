@@ -212,6 +212,48 @@ void query_service_handler::outputs(
     }
 }
 
+void query_service_handler::history(
+    History& history, const std::string& address)
+{
+    std::error_code ec;
+    history_t hist = chain_.history(address, ec);
+    check_errc(ec);
+    for (const output_point& outp: hist.outpoints)
+    {
+        OutputPoint outpoint;
+        outpoint.hash = to_binary(outp.hash);
+        outpoint.index = outp.index;
+        history.outpoints.push_back(outpoint);
+    }
+    for (const input_point& inp: hist.inpoints)
+    {
+        InputPoint inpoint;
+        inpoint.hash = to_binary(inp.hash);
+        inpoint.index = inp.index;
+        history.inpoints.push_back(inpoint);
+    }
+}
+
+void query_service_handler::output_values(
+    OutputValues& values, const OutputPointList& outpoints)
+{
+    output_point_list outs;
+    for (const OutputPoint& outpoint: outpoints)
+    {
+        output_point outp;
+        BITCOIN_ASSERT(outpoint.hash.size() == outp.hash.size());
+        std::copy(outpoint.hash.begin(), outpoint.hash.end(),
+            outp.hash.begin());
+        outp.index = outpoint.index;
+        outs.push_back(outp);
+    }
+    std::error_code ec;
+    output_value_list vals = chain_.output_values(outs, ec);
+    check_errc(ec);
+    for (uint64_t value: vals)
+        values.push_back(value);
+}
+
 void query_service_handler::transaction_pool_transaction(
     Transaction& tx, const std::string& hash)
 {

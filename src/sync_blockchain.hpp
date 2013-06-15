@@ -8,6 +8,12 @@ struct transaction_index_t
     size_t depth, offset;
 };
 
+struct history_t
+{
+    bc::output_point_list outpoints;
+    bc::input_point_list inpoints;
+};
+
 class sync_blockchain
 {
 public:
@@ -56,6 +62,17 @@ public:
         const bc::payment_address& address) const;
     bc::output_point_list outputs(
         const bc::payment_address& address, std::error_code& ec) const;
+
+    // Composed operations
+    history_t history(
+        const bc::payment_address& address) const;
+    history_t history(
+        const bc::payment_address& address, std::error_code& ec) const;
+
+    bc::output_value_list output_values(
+        const bc::output_point_list& outpoints) const;
+    bc::output_value_list output_values(
+        const bc::output_point_list& outpoints, std::error_code& ec) const;
 private:
     bc::blockchain& chain_;
 };
