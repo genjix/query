@@ -36,9 +36,10 @@ query_service_handler::query_service_handler(
 {
 }
 
-void query_service_handler::initialize(stop_function_type stop_function)
+void query_service_handler::wait()
 {
-    stop_function_ = stop_function;
+    std::unique_lock<std::mutex> lock(mutex_);
+    condition_.wait(lock, [this]{ return finished_; });
 }
 
 bool query_service_handler::stop(const std::string& secret)
@@ -46,7 +47,9 @@ bool query_service_handler::stop(const std::string& secret)
     if (secret != stop_secret_)
         return false;
     echo() << "Stopping server...";
-    stop_function_();
+    std::unique_lock<std::mutex> lock(mutex_);
+    finished_ = true;
+    condition_.notify_one();
     return true;
 }
 
@@ -300,10 +303,10 @@ void start_thrift_server(config_map_type& config, node_impl& node)
     thread_manager->start();
     TThreadPoolServer server(processor, server_transport,
         transport_factory, protocol_factory, thread_manager);
-    handler->initialize(
-        std::bind(&TThreadPoolServer::stop, &server));
 
     echo() << "Starting server...";
-    server.serve();
+    std::thread t([&server] { server.serve(); });
+    t.detach();
+    handler->wait();
 }
 
