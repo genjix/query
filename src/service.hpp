@@ -1,7 +1,6 @@
 #ifndef QUERY_SERVICE_HPP
 #define QUERY_SERVICE_HPP
 
-#include <condition_variable>
 #include <bitcoin/bitcoin.hpp>
 
 #include "thrift/QueryService.h"
@@ -16,6 +15,7 @@ public:
     typedef std::function<void ()> stop_function_type;
 
     query_service_handler(config_map_type& config, node_impl& node);
+    bool stopped() const;
     void wait();
 
     bool stop(const std::string& secret);
@@ -47,9 +47,7 @@ private:
     sync_transaction_pool txpool_;
     bc::protocol& protocol_;
     const std::string stop_secret_;
-    std::condition_variable condition_;
-    std::mutex mutex_;
-    bool finished_ = false;
+    bool stopped_ = false;
 };
 
 void start_thrift_server(config_map_type& config, node_impl& node);

@@ -36,10 +36,15 @@ query_service_handler::query_service_handler(
 {
 }
 
+bool query_service_handler::stopped() const
+{
+    return stopped_;
+}
+
 void query_service_handler::wait()
 {
-    std::unique_lock<std::mutex> lock(mutex_);
-    condition_.wait(lock, [this]{ return finished_; });
+    while (!stopped_)
+        sleep(1);
 }
 
 bool query_service_handler::stop(const std::string& secret)
@@ -47,9 +52,7 @@ bool query_service_handler::stop(const std::string& secret)
     if (secret != stop_secret_)
         return false;
     echo() << "Stopping server...";
-    std::unique_lock<std::mutex> lock(mutex_);
-    finished_ = true;
-    condition_.notify_one();
+    stopped_ = true;
     return true;
 }
 
